@@ -22,8 +22,6 @@ public class ByteBufferHelper {
         return result;
     }
 
-
-
     public static long readVarLong(ByteBuffer buf) {
         int numRead = 0;
         long result = 0;
