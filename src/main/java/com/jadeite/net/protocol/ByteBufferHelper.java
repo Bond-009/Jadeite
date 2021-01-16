@@ -1,6 +1,7 @@
 package com.jadeite.net.protocol;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class ByteBufferHelper {
     public static int readVarInt(ByteBuffer buf) {
@@ -21,6 +22,26 @@ public class ByteBufferHelper {
         return result;
     }
 
+
+
+    public static long readVarLong(ByteBuffer buf) {
+        int numRead = 0;
+        long result = 0;
+        byte read;
+        do {
+            read = buf.get();
+            long value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 10) {
+                throw new RuntimeException("VarLong is too big");
+            }
+        } while ((read & 0b10000000) != 0);
+
+        return result;
+    }
+
     public static String readString(ByteBuffer buf) {
         int len = readVarInt(buf);
 
@@ -31,5 +52,37 @@ public class ByteBufferHelper {
         byte[] bytes = new byte[len];
         buf.get(bytes);
         return new String(bytes);
+    }
+
+    public static void writeVarInt(ByteBuffer buf, int value) {
+        do {
+            byte temp = (byte)(value & 0b01111111);
+            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+
+            buf.put(temp);
+        } while (value != 0);
+    }
+
+    public static void writeVarLong(ByteBuffer buf, long value) {
+        do {
+            byte temp = (byte)(value & 0b01111111);
+            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+
+            buf.put(temp);
+        } while (value != 0);
+    }
+
+    public static void writeString(ByteBuffer buf, String value) {
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        writeVarInt(buf, bytes.length);
+        buf.put(bytes);
     }
 }

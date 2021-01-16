@@ -67,13 +67,13 @@ public class CircularBuffer {
      * Reads a byte from the buffer.
      */
     public byte readByte() {
-        if (available() > 0) {
+        //if (available() > 0) {
             final byte value = buffer[readIndex];
             readIndex = (readIndex + 1) % size;
             return value;
-        }
+        //}
 
-        return -1;
+        //return -1;
     }
 
     /**
