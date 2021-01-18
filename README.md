@@ -4,5 +4,5 @@ State       | Packets Implemented
 ------------|-------
 Handshaking | All
 Status      | All
-Login       | None
+Login       | Partial
 Play        | None

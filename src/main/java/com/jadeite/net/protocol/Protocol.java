@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -86,6 +87,15 @@ public class Protocol {
                         System.out.println("unknown packet: " + id  + ", state: " + state);
                         return;
                 }
+            case State.Login:
+                switch (id) {
+                    case 0x00:
+                        handleLoginStart(packet);
+                        return;
+                    default:
+                        System.out.println("unknown packet: " + id  + ", state: " + state);
+                        return;
+                }
             case State.Disconnected:
                 return;
             default:
@@ -127,7 +137,7 @@ public class Protocol {
 
         JSONObject players = new JSONObject();
         // TODO: make configurable
-        players.put("max", new Integer(2147483647));
+        players.put("max", new Integer(-2147483648));
         players.put("online", new Integer(42069));
         JSONArray sample = new JSONArray();
         players.put("sample", sample);
@@ -138,8 +148,6 @@ public class Protocol {
         obj.put("description", description);
 
         String str = obj.toJSONString();
-
-        System.out.println(str);
 
         ByteBuffer wbuf = ByteBuffer.allocate(str.length() + 5);
         ByteBufferHelper.writeVarInt(wbuf, 0x00);
@@ -157,5 +165,27 @@ public class Protocol {
         System.out.println(payload);
 
         writePacket(rbuf);
+    }
+
+    // Login packets
+
+    private void handleLoginStart(ByteBuffer rbuf) throws IOException {
+        String name = ByteBufferHelper.readString(rbuf);
+        // TODO: encryption
+        loginSuccess();
+    }
+
+    private void loginSuccess() throws  IOException {
+        state = State.Play;
+
+        // TODO: enable compression
+
+        ByteBuffer wbuf = ByteBuffer.allocate(256);
+        ByteBufferHelper.writeVarInt(wbuf, 0x02);
+        // TODO: don't send garbage
+        ByteBufferHelper.writeString(wbuf, "63407648-468f-469f-ac1f-4ed3d866a93e");
+        ByteBufferHelper.writeString(wbuf, "Bond_009");
+
+        writePacket(wbuf);
     }
 }
